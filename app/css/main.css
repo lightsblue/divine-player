@@ -1,0 +1,11 @@
+@import "bootstrap.css";
+
+body {
+  text-align: center;
+  padding-top: 50px;
+}
+
+#video {
+  width: 600px;
+  height: 600px;
+}

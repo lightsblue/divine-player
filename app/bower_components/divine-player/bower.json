@@ -1,0 +1,20 @@
+{
+  "name": "divine-player",
+  "description": "A very simple HTML5 video player that degrades to Flash if necessary",
+  "version": "1.2.1",
+  "authors": [
+    "Cameron Hunter <hello@cameronhunter.co.uk>"
+  ],
+  "devDependencies": {
+    "jasmine-jquery": "~1.5.8",
+    "jquery": "~1.10.2"
+  },
+  "ignore": [
+    ".gitignore",
+    ".travis.yml",
+    "Gruntfile.js",
+    "package.json",
+    "src/",
+    "test/"
+  ]
+}
