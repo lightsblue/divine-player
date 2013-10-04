@@ -2,6 +2,9 @@
   "name": "divine-player",
   "version": "0.0.0",
   "devDependencies": {
-    "generator-flight": "~0.5.2"
+    "generator-flight": "~0.5.2",
+    "grunt": "~0.4.1",
+    "grunt-gh-pages": "~0.7.6",
+    "matchdep": "~0.1.2"
   }
 }
