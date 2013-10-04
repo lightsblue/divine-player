@@ -1,6 +1,0 @@
-{
-  "name": "divine-player-example",
-  "dependencies": {
-    "divine-player": "~1.2.1"
-  }
-}
