@@ -1,0 +1,13 @@
+{
+  "name": "divine-player",
+  "version": "0.0.0",
+  "dependencies": {
+    "flight": "~1.1.0",
+    "requirejs": "~2.1.5",
+    "divine-player": "latest"
+  },
+  "devDependencies": {
+    "jasmine-flight": "*",
+    "jasmine-jquery": "*"
+  }
+}
