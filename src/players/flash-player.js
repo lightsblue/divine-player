@@ -28,6 +28,8 @@ var FlashPlayer = (function(global) {
     var unique = (new Date).getTime();
     var callback = [namespace, 'onReady', unique].join('_');
     var onError = [namespace, 'onError', unique].join('_');
+    var onDuration = [namespace, 'onDuration', unique].join('_');
+    var latestDuration = NaN;
 
     var self = this;
     if (callback) {
@@ -36,6 +38,13 @@ var FlashPlayer = (function(global) {
 
     global[onError] = function(code, description) {
       throw {'name': 'ActionScript ' + code, 'message': description};
+    };
+
+    global[onDuration] = function(seconds) {
+      var e = new Event('durationchange');
+      e.target = el;
+      latestDuration = seconds;
+      el.dispatchEvent(e);
     };
 
     var swf = override(el.getAttribute('data-fallback-player'), options.swf);
@@ -51,8 +60,13 @@ var FlashPlayer = (function(global) {
       poster: hasAttribute(el, 'poster') ? absolute(el.getAttribute('poster')) : undefined,
       video: getVideoUrl(el),
       onReady: callback,
-      onError: onError
+      onError: onError,
+      onDuration: onDuration
     });
+
+    this.duration = function() {
+      return latestDuration;
+    }
   }
 
   FlashPlayer.name = FlashPlayer.name || 'FlashPlayer';
@@ -76,6 +90,10 @@ var FlashPlayer = (function(global) {
 
   FlashPlayer.fn.play = function() {
     this.swf.divinePlay();
+  };
+
+  FlashPlayer.fn.currentTime = function(offset) {
+    this.swf.divineCurrentTime(offset);
   };
 
   FlashPlayer.fn.pause = function() {

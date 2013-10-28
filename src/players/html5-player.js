@@ -28,6 +28,14 @@ var HTML5Player = (function() {
   HTML5Player.fn.play = function() {
     this.el.play();
   };
+  
+  HTML5Player.fn.currentTime = function(offset) {
+    this.el.currentTime = offset;
+  }
+  
+  HTML5Player.fn.duration = function() {
+    return this.el.duration;
+  }
 
   HTML5Player.fn.pause = function() {
     this.el.pause();
