@@ -93,7 +93,11 @@ var FlashPlayer = (function(global) {
   };
 
   FlashPlayer.fn.currentTime = function(offset) {
-    this.swf.divineCurrentTime(offset);
+    if (typeof offset !== 'undefined') {
+      this.swf.divineCurrentTime(offset);
+    } else {
+      return this.swf.divineGetCurrentTime();
+    }
   };
 
   FlashPlayer.fn.pause = function() {
