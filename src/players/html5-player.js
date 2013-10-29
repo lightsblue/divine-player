@@ -30,7 +30,10 @@ var HTML5Player = (function() {
   };
   
   HTML5Player.fn.currentTime = function(offset) {
-    this.el.currentTime = offset;
+    if (typeof offset !== 'undefined') {
+      this.el.currentTime = offset;
+    }
+    return this.el.currentTime;
   }
   
   HTML5Player.fn.duration = function() {
