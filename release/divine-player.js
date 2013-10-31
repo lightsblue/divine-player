@@ -8,8 +8,8 @@ var HTML5Player = (function() {
 
   function HTML5Player(el, options, onReady) {
     this.el = el;
-    this.el.width = options.size;
-    this.el.height = options.size;
+    this.el.width = typeof options.width !== 'undefined' ? options.width : options.size;
+    this.el.height = typeof options.height !== 'undefined' ? options.height : options.size;
     this.el.muted = el.hasAttribute('muted');
     workarounds(this.el, navigator.userAgent);
     if (onReady) onReady(this);
@@ -34,6 +34,17 @@ var HTML5Player = (function() {
   HTML5Player.fn.play = function() {
     this.el.play();
   };
+  
+  HTML5Player.fn.currentTime = function(offset) {
+    if (typeof offset !== 'undefined') {
+      this.el.currentTime = offset;
+    }
+    return this.el.currentTime;
+  }
+  
+  HTML5Player.fn.duration = function() {
+    return this.el.duration;
+  }
 
   HTML5Player.fn.pause = function() {
     this.el.pause();
@@ -58,10 +69,17 @@ var HTML5Player = (function() {
   return HTML5Player;
 
   function workarounds(el, userAgent) {
+    var iPad = /ipad/i.test(userAgent);
+    var iPhone = /ipad/i.test(userAgent);
+    var android = /android/i.test(userAgent);
+    var chrome = /chrome/i.test(userAgent);
+
+    var mobile = iPad || iPhone || android;
+
     /**
      * https://github.com/cameronhunter/divine-player/issues/1
      */
-    if(el.hasAttribute('poster')) {
+    if(el.hasAttribute('poster') && chrome && !mobile) {
       var poster = el.getAttribute('poster');
       el.removeAttribute('poster');
     }
@@ -69,7 +87,7 @@ var HTML5Player = (function() {
     /**
      * https://github.com/cameronhunter/divine-player/issues/2
      */
-    if (!el.hasAttribute('controls') && (/ipad/i.test(userAgent) || /android/i.test(userAgent))) {
+    if (!el.hasAttribute('controls') && (iPad || android)) {
       el.controls = true;
       el.addEventListener('play', function() {
         el.controls = false;
@@ -79,7 +97,7 @@ var HTML5Player = (function() {
     /**
      * https://github.com/cameronhunter/divine-player/issues/3
      */
-    if (/android/i.test(userAgent)) {
+    if (android) {
       el.loop = false;
       el.addEventListener('ended', function() {
         el.play();
@@ -119,12 +137,19 @@ var FlashPlayer = (function(global) {
   // TODO: Select the mp4 instead of just the first source
   function FlashPlayer(el, options, onReady) {
 
-    if (!options.size) options.size = DEFAULT_SIZE;
+    if (typeof options.width === 'undefined') {
+      options.width = typeof options.size !== 'undefined' ? options.size : DEFAULT_SIZE;
+    }
+    if (typeof options.height === 'undefined') {
+      options.height = typeof options.size !== 'undefined' ? options.size : DEFAULT_SIZE;
+    }
 
     var namespace = 'divinePlayer';
     var unique = (new Date).getTime();
     var callback = [namespace, 'onReady', unique].join('_');
     var onError = [namespace, 'onError', unique].join('_');
+    var onDuration = [namespace, 'onDuration', unique].join('_');
+    var latestDuration = NaN;
 
     var self = this;
     if (callback) {
@@ -135,20 +160,33 @@ var FlashPlayer = (function(global) {
       throw {'name': 'ActionScript ' + code, 'message': description};
     };
 
+    global[onDuration] = function(seconds) {
+      var e = new Event('durationchange');
+      e.target = el;
+      latestDuration = seconds;
+      el.dispatchEvent(e);
+    };
+
     var swf = override(el.getAttribute('data-fallback-player'), options.swf);
 
     if (!swf) throw 'SWF url must be specified.';
 
     this.swf = embed(swf, el, {
-      size: options.size,
+      width: options.width,
+      height: options.height,
       autoplay: hasAttribute(el, 'autoplay'),
       muted: hasAttribute(el, 'muted'),
       loop: hasAttribute(el, 'loop'),
       poster: hasAttribute(el, 'poster') ? absolute(el.getAttribute('poster')) : undefined,
       video: getVideoUrl(el),
       onReady: callback,
-      onError: onError
+      onError: onError,
+      onDuration: onDuration
     });
+
+    this.duration = function() {
+      return latestDuration;
+    }
   }
 
   FlashPlayer.name = FlashPlayer.name || 'FlashPlayer';
@@ -172,6 +210,14 @@ var FlashPlayer = (function(global) {
 
   FlashPlayer.fn.play = function() {
     this.swf.divinePlay();
+  };
+
+  FlashPlayer.fn.currentTime = function(offset) {
+    if (typeof offset !== 'undefined') {
+      this.swf.divineCurrentTime(offset);
+    } else {
+      return this.swf.divineGetCurrentTime();
+    }
   };
 
   FlashPlayer.fn.pause = function() {
@@ -235,8 +281,8 @@ var FlashPlayer = (function(global) {
     var attributes = attrs({
       id: el.id,
       data: swf,
-      width: options.size,
-      height: options.size,
+      width: options.width,
+      height: options.height,
       type: 'application/x-shockwave-flash'
     });
 
@@ -264,6 +310,7 @@ var FlashPlayer = (function(global) {
     return custom == null ? original : custom;
   }
 }(this));
+
 
 /******************************************************************************
  * src/divine-player.js
