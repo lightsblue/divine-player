@@ -110,6 +110,15 @@ var HTML5Player = (function() {
     if (el.hasAttribute('autoplay')) {
       el.play();
     }
+
+    var sources = el.getElementsByTagName('source');
+    for (var i=0, l = sources.length; i<l; i++) {
+      sources[i].addEventListener("error", function(){
+        var e = new Event('videoFailed');
+        e.target = el;
+        el.dispatchEvent(e);
+      });
+    }
   }
 }());
 
@@ -157,6 +166,9 @@ var FlashPlayer = (function(global) {
     }
 
     global[onError] = function(code, description) {
+      var e = new Event('videoFailed');
+      e.target = el;
+      el.dispatchEvent(e);
       throw {'name': 'ActionScript ' + code, 'message': description};
     };
 

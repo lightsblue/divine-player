@@ -37,6 +37,9 @@ var FlashPlayer = (function(global) {
     }
 
     global[onError] = function(code, description) {
+      var e = new Event('videoFailed');
+      e.target = el;
+      el.dispatchEvent(e);
       throw {'name': 'ActionScript ' + code, 'message': description};
     };
 
