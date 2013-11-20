@@ -143,6 +143,21 @@ var FlashPlayer = (function(global) {
 
   var DEFAULT_SIZE = 150;
 
+  function triggerCustomEvent(el,eventName){
+    var event;
+    if(document.createEvent){
+      event = document.createEvent('HTMLEvents');
+      event.initEvent(eventName,true,true);
+    }else if(document.createEventObject){// IE < 9
+      event = document.createEventObject();
+      event.eventType = eventName;
+    }
+    event.eventName = eventName;
+    if(el.dispatchEvent){
+      el.dispatchEvent(event);
+    }
+  }
+
   // TODO: Select the mp4 instead of just the first source
   function FlashPlayer(el, options, onReady) {
 
@@ -166,17 +181,13 @@ var FlashPlayer = (function(global) {
     }
 
     global[onError] = function(code, description) {
-      var e = new Event('videoFailed');
-      e.target = el;
-      el.dispatchEvent(e);
+      triggerCustomEvent(el, 'videoFailed');
       throw {'name': 'ActionScript ' + code, 'message': description};
     };
 
     global[onDuration] = function(seconds) {
-      var e = new Event('durationchange');
-      e.target = el;
       latestDuration = seconds;
-      el.dispatchEvent(e);
+      triggerCustomEvent(el, 'durationchange');
     };
 
     var swf = override(el.getAttribute('data-fallback-player'), options.swf);
