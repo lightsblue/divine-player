@@ -1,7 +1,7 @@
 {
   "name": "divine-player",
   "description": "A very simple HTML5 video player that degrades to Flash if necessary",
-  "version": "2.1.4",
+  "version": "3.5.2",
   "authors": [
     "Cameron Hunter <hello@cameronhunter.co.uk>"
   ],
@@ -27,6 +27,7 @@
     "karma-phantomjs-launcher": "latest",
     "karma-safari-launcher": "latest",
     "karma-sauce-launcher": "latest",
+    "karma-spec-reporter": "latest",
     "matchdep": "latest"
   },
   "engines": {

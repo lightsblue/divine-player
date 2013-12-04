@@ -10,7 +10,7 @@
  *           Link: https://code.google.com/p/swfobject/issues/detail?id=667
  */
 
-var FlashPlayer = (function(global) {
+var FlashPlayer = (function(global, DEBUG) {
 
   var DEFAULT_SIZE = 150;
 
@@ -32,19 +32,15 @@ var FlashPlayer = (function(global) {
   // TODO: Select the mp4 instead of just the first source
   function FlashPlayer(el, options, onReady) {
 
-    if (typeof options.width === 'undefined') {
-      options.width = typeof options.size !== 'undefined' ? options.size : DEFAULT_SIZE;
-    }
-    if (typeof options.height === 'undefined') {
-      options.height = typeof options.size !== 'undefined' ? options.size : DEFAULT_SIZE;
-    }
-
+    var callbackId = (new Date).getTime();
     var namespace = 'divinePlayer';
     var unique = (new Date).getTime();
     var callback = [namespace, 'onReady', unique].join('_');
     var onError = [namespace, 'onError', unique].join('_');
     var onDuration = [namespace, 'onDuration', unique].join('_');
     var latestDuration = NaN;
+    if (!options.width) options.width = DEFAULT_SIZE;
+    if (!options.height) options.height = DEFAULT_SIZE;
 
     var self = this;
     if (callback) {
@@ -53,7 +49,7 @@ var FlashPlayer = (function(global) {
 
     global[onError] = function(code, description) {
       triggerCustomEvent(el, 'videoFailed');
-      throw {'name': 'ActionScript ' + code, 'message': description};
+      if (DEBUG) throw {'name': 'ActionScript ' + code, 'message': description};
     };
 
     global[onDuration] = function(seconds) {
@@ -63,7 +59,9 @@ var FlashPlayer = (function(global) {
 
     var swf = override(el.getAttribute('data-fallback-player'), options.swf);
 
-    if (!swf) throw 'SWF url must be specified.';
+    if (DEBUG) {
+      if (!swf) throw 'SWF url must be specified.';
+    }
 
     this.swf = embed(swf, el, {
       width: options.width,
@@ -75,7 +73,8 @@ var FlashPlayer = (function(global) {
       video: getVideoUrl(el),
       onReady: callback,
       onError: onError,
-      onDuration: onDuration
+      onDuration: onDuration,
+      callbackId: callbackId
     });
 
     this.duration = function() {
@@ -203,4 +202,5 @@ var FlashPlayer = (function(global) {
   function override(original, custom) {
     return custom == null ? original : custom;
   }
-}(this));
+
+}(this, window['DEBUG'] || false));

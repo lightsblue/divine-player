@@ -1,9 +1,9 @@
-var HTML5Player = (function() {
+var HTML5Player = (function(DEBUG) {
 
   function HTML5Player(el, options, onReady) {
     this.el = el;
-    this.el.width = typeof options.width !== 'undefined' ? options.width : options.size;
-    this.el.height = typeof options.height !== 'undefined' ? options.height : options.size;
+    this.el.width = options.width || el.videoWidth;
+    this.el.height = options.height || el.videoHeight;
     this.el.muted = el.hasAttribute('muted');
     workarounds(this.el, navigator.userAgent);
     if (onReady) onReady(this);
@@ -114,4 +114,4 @@ var HTML5Player = (function() {
       });
     }
   }
-}());
+}(window['DEBUG'] || false));

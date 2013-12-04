@@ -4,12 +4,12 @@ var DivinePlayer = (function() {
  * src/players/html5-player.js
  ******************************************************************************/
 
-var HTML5Player = (function() {
+var HTML5Player = (function(DEBUG) {
 
   function HTML5Player(el, options, onReady) {
     this.el = el;
-    this.el.width = typeof options.width !== 'undefined' ? options.width : options.size;
-    this.el.height = typeof options.height !== 'undefined' ? options.height : options.size;
+    this.el.width = options.width || el.videoWidth;
+    this.el.height = options.height || el.videoHeight;
     this.el.muted = el.hasAttribute('muted');
     workarounds(this.el, navigator.userAgent);
     if (onReady) onReady(this);
@@ -120,7 +120,7 @@ var HTML5Player = (function() {
       });
     }
   }
-}());
+}(window['DEBUG'] || false));
 
 
 /******************************************************************************
@@ -139,7 +139,7 @@ var HTML5Player = (function() {
  *           Link: https://code.google.com/p/swfobject/issues/detail?id=667
  */
 
-var FlashPlayer = (function(global) {
+var FlashPlayer = (function(global, DEBUG) {
 
   var DEFAULT_SIZE = 150;
 
@@ -161,19 +161,15 @@ var FlashPlayer = (function(global) {
   // TODO: Select the mp4 instead of just the first source
   function FlashPlayer(el, options, onReady) {
 
-    if (typeof options.width === 'undefined') {
-      options.width = typeof options.size !== 'undefined' ? options.size : DEFAULT_SIZE;
-    }
-    if (typeof options.height === 'undefined') {
-      options.height = typeof options.size !== 'undefined' ? options.size : DEFAULT_SIZE;
-    }
-
+    var callbackId = (new Date).getTime();
     var namespace = 'divinePlayer';
     var unique = (new Date).getTime();
     var callback = [namespace, 'onReady', unique].join('_');
     var onError = [namespace, 'onError', unique].join('_');
     var onDuration = [namespace, 'onDuration', unique].join('_');
     var latestDuration = NaN;
+    if (!options.width) options.width = DEFAULT_SIZE;
+    if (!options.height) options.height = DEFAULT_SIZE;
 
     var self = this;
     if (callback) {
@@ -182,7 +178,7 @@ var FlashPlayer = (function(global) {
 
     global[onError] = function(code, description) {
       triggerCustomEvent(el, 'videoFailed');
-      throw {'name': 'ActionScript ' + code, 'message': description};
+      if (DEBUG) throw {'name': 'ActionScript ' + code, 'message': description};
     };
 
     global[onDuration] = function(seconds) {
@@ -192,7 +188,9 @@ var FlashPlayer = (function(global) {
 
     var swf = override(el.getAttribute('data-fallback-player'), options.swf);
 
-    if (!swf) throw 'SWF url must be specified.';
+    if (DEBUG) {
+      if (!swf) throw 'SWF url must be specified.';
+    }
 
     this.swf = embed(swf, el, {
       width: options.width,
@@ -204,7 +202,8 @@ var FlashPlayer = (function(global) {
       video: getVideoUrl(el),
       onReady: callback,
       onError: onError,
-      onDuration: onDuration
+      onDuration: onDuration,
+      callbackId: callbackId
     });
 
     this.duration = function() {
@@ -332,7 +331,75 @@ var FlashPlayer = (function(global) {
   function override(original, custom) {
     return custom == null ? original : custom;
   }
-}(this));
+
+}(this, window['DEBUG'] || false));
+
+
+/******************************************************************************
+ * src/players/image-player.js
+ ******************************************************************************/
+
+/**
+ * This player uses the poster image providing a clean static fallback if
+ * other players such as the HTML5 or Flash players aren't supported.
+ *
+ * It would be awesome if this player showed a GIF rather than the poster. It
+ * would provide the best possible end-user experience.
+ */
+var ImagePlayer = (function(DEBUG) {
+
+  function ImagePlayer(el, options, onReady) {
+    this._playing = hasAttribute(el, 'autoplay');
+    this._muted = hasAttribute(el, 'muted');
+
+    embed(el, options, el.getAttribute('poster'));
+
+    if (onReady) onReady(this);
+  }
+
+  ImagePlayer.name = ImagePlayer.name || 'ImagePlayer';
+
+  ImagePlayer.canPlay = function(el) {
+    return hasAttribute(el, 'poster');
+  };
+
+  ImagePlayer.fn = ImagePlayer.prototype;
+
+  ImagePlayer.fn.play = function() {
+    this._playing = true;
+  };
+
+  ImagePlayer.fn.pause = function() {
+    this._playing = false;
+  };
+
+  ImagePlayer.fn.paused = function() {
+    return !this._playing;
+  };
+
+  ImagePlayer.fn.mute = function() {
+    this._muted = true;
+  };
+
+  ImagePlayer.fn.unmute = function() {
+    this._muted = false;
+  };
+
+  ImagePlayer.fn.muted = function() {
+    return this._muted;
+  };
+
+  return ImagePlayer;
+
+  function embed(el, options, poster) {
+    el.outerHTML = '<img id="' + el.id + '" src="' + poster + '" width="' + options.width + '" height="' + options.height + '">';
+  }
+
+  // IE7 and below doesn't support hasAttribute
+  function hasAttribute(el, attribute) {
+    return el.getAttribute(attribute) != null;
+  }
+}(window['DEBUG'] || false));
 
 
 /******************************************************************************
@@ -354,13 +421,15 @@ var FlashPlayer = (function(global) {
  *    to add these properties after element initialisation?
  */
 
-var DivinePlayer = (function() {
+var DivinePlayer = (function(DEBUG) {
 
-  var PLAYERS = [HTML5Player, FlashPlayer];
+  var PLAYERS = [HTML5Player, FlashPlayer, ImagePlayer];
   var OPTIONS = ['autoplay', 'controls', 'loop', 'muted'];
 
   function DivinePlayer(el, options, onReady) {
-    require(el, 'Element must be defined.');
+    if (DEBUG) {
+      require(el, 'Element must be defined.');
+    }
 
     var options = options || {};
 
@@ -377,7 +446,12 @@ var DivinePlayer = (function() {
       if (state != null) attr(el, property, state);
     }
 
-    var Player = require(DivinePlayer.getSupportedPlayer(el), 'No supported player found.');
+    var Player = DivinePlayer.getSupportedPlayer(el);
+
+    if (DEBUG) {
+      require(Player, 'No supported player found.');
+    }
+
     var player = new Player(el, options, onReady);
 
     if (options.allowHashMessage) {
@@ -395,9 +469,11 @@ var DivinePlayer = (function() {
     return player;
   }
 
-  // Exposed for testing purposes.
-  DivinePlayer.players = PLAYERS;
-  DivinePlayer.options = OPTIONS;
+  if (DEBUG) {
+    DivinePlayer.players = PLAYERS;
+    DivinePlayer.options = OPTIONS;
+  }
+
   DivinePlayer.getSupportedPlayer = function(video) {
     for (var i=0, l=PLAYERS.length; i<l; i++) if (PLAYERS[i].canPlay(video)) {
       return PLAYERS[i];
@@ -436,6 +512,6 @@ var DivinePlayer = (function() {
       case 'unmute': player.unmute(); break;
     }
   }
-}());
+}(window['DEBUG'] || false));
 
 return DivinePlayer;}());
