@@ -31,13 +31,11 @@ var FlashPlayer = (function(global, DEBUG) {
 
   // TODO: Select the mp4 instead of just the first source
   function FlashPlayer(el, options, onReady) {
-
-    var callbackId = (new Date).getTime();
+    var callbackId = el.id;
     var namespace = 'divinePlayer';
-    var unique = (new Date).getTime();
-    var callback = [namespace, 'onReady', unique].join('_');
-    var onError = [namespace, 'onError', unique].join('_');
-    var onDuration = [namespace, 'onDuration', unique].join('_');
+    var callback = [namespace, callbackId, 'onReady'].join('_');
+    var onError = [namespace, callbackId, 'onError'].join('_');
+    var onDuration = [namespace, callbackId, 'onDuration'].join('_');
     var latestDuration = NaN;
     if (!options.width) options.width = DEFAULT_SIZE;
     if (!options.height) options.height = DEFAULT_SIZE;
@@ -173,6 +171,7 @@ var FlashPlayer = (function(global, DEBUG) {
  function embed(swf, el, options) {
     var attributes = attrs({
       id: el.id,
+      name: el.id,
       data: swf,
       width: options.width,
       height: options.height,

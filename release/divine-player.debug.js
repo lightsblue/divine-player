@@ -54,22 +54,22 @@ var DivinePlayer = function() {
             c.eventType = b), c.eventName = b, a.dispatchEvent && a.dispatchEvent(c);
         }
         function FlashPlayer(f, g, h) {
-            var i = new Date().getTime(), n = "divinePlayer", o = new Date().getTime(), p = [ n, "onReady", o ].join("_"), q = [ n, "onError", o ].join("_"), r = [ n, "onDuration", o ].join("_"), s = 0/0;
+            var i = f.id, n = "divinePlayer", o = [ n, i, "onReady" ].join("_"), p = [ n, i, "onError" ].join("_"), q = [ n, i, "onDuration" ].join("_"), r = 0/0;
             g.width || (g.width = m), g.height || (g.height = m);
-            var t = this;
-            p && (a[p] = function() {
-                h(t);
-            }), a[q] = function(a, d) {
+            var s = this;
+            o && (a[o] = function() {
+                h(s);
+            }), a[p] = function(a, d) {
                 if (c(f, "videoFailed"), b) throw {
                     name: "ActionScript " + a,
                     message: d
                 };
-            }, a[r] = function(a) {
-                s = a, c(f, "durationchange");
+            }, a[q] = function(a) {
+                r = a, c(f, "durationchange");
             };
-            var u = l(f.getAttribute("data-fallback-player"), g.swf);
-            if (b && !u) throw "SWF url must be specified.";
-            this.swf = j(u, f, {
+            var t = l(f.getAttribute("data-fallback-player"), g.swf);
+            if (b && !t) throw "SWF url must be specified.";
+            this.swf = j(t, f, {
                 width: g.width,
                 height: g.height,
                 autoplay: k(f, "autoplay"),
@@ -77,12 +77,12 @@ var DivinePlayer = function() {
                 loop: k(f, "loop"),
                 poster: k(f, "poster") ? d(f.getAttribute("poster")) : void 0,
                 video: e(f),
-                onReady: p,
-                onError: q,
-                onDuration: r,
+                onReady: o,
+                onError: p,
+                onDuration: q,
                 callbackId: i
             }), this.duration = function() {
-                return s;
+                return r;
             };
         }
         function d(a) {
@@ -118,6 +118,7 @@ var DivinePlayer = function() {
         function j(a, b, c) {
             var d = f({
                 id: b.id,
+                name: b.id,
                 data: a,
                 width: c.width,
                 height: c.height,
