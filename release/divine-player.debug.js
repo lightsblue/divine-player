@@ -125,7 +125,7 @@ var DivinePlayer = function() {
                 type: "application/x-shockwave-flash"
             }), e = g({
                 movie: a,
-                allowScriptAccess: "always",
+                allowScriptAccess: "sameDomain",
                 allowNetworking: "all",
                 wmode: "opaque",
                 quality: "high",
@@ -151,8 +151,7 @@ var DivinePlayer = function() {
         }, FlashPlayer.fn = FlashPlayer.prototype, FlashPlayer.fn.play = function() {
             this.swf.divinePlay();
         }, FlashPlayer.fn.currentTime = function(a) {
-            return "undefined" == typeof a ? this.swf.divineGetCurrentTime() : (this.swf.divineCurrentTime(a), 
-            void 0);
+            return "undefined" == typeof a ? this.swf.divineGetCurrentTime() : void this.swf.divineCurrentTime(a);
         }, FlashPlayer.fn.pause = function() {
             this.swf.divinePause();
         }, FlashPlayer.fn.paused = function() {

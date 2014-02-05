@@ -180,7 +180,7 @@ var FlashPlayer = (function(global, DEBUG) {
 
     var parameters = params({
       movie: swf,
-      allowScriptAccess: 'always',
+      allowScriptAccess: 'sameDomain',
       allowNetworking: 'all',
       wmode: 'opaque',
       quality: 'high',
