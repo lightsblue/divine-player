@@ -1,4 +1,27 @@
 var HTML5Player = (function(DEBUG) {
+  /**
+   * Returns IE version, or false if not IE.
+   * From http://stackoverflow.com/a/21712356
+   */
+  function detectIE() {
+    var ua = window.navigator.userAgent;
+    var msie = ua.indexOf('MSIE ');
+    var trident = ua.indexOf('Trident/');
+
+    if (msie > 0) {
+        // IE 10 or older => return version number
+        return parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10);
+    }
+
+    if (trident > 0) {
+        // IE 11 (or newer) => return version number
+        var rv = ua.indexOf('rv:');
+        return parseInt(ua.substring(rv + 3, ua.indexOf('.', rv)), 10);
+    }
+
+    // other browser
+    return false;
+  }
 
   function HTML5Player(el, options, onReady) {
     this.el = el;
@@ -12,6 +35,10 @@ var HTML5Player = (function(DEBUG) {
   HTML5Player.name = HTML5Player.name || 'HTML5Player';
 
   HTML5Player.canPlay = function(el) {
+    if (detectIE()) {
+      return false;
+    }
+    
     try {
       var sources = el.getElementsByTagName('source');
       for (var i=0, l = sources.length; i<l; i++) {

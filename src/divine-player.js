@@ -14,7 +14,6 @@
  */
 
 var DivinePlayer = (function(DEBUG) {
-
   var PLAYERS = [HTML5Player, FlashPlayer, ImagePlayer];
   var OPTIONS = ['autoplay', 'controls', 'loop', 'muted'];
 
