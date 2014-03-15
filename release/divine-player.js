@@ -5,6 +5,29 @@ var DivinePlayer = (function() {
  ******************************************************************************/
 
 var HTML5Player = (function(DEBUG) {
+  /**
+   * Returns IE version, or false if not IE.
+   * From http://stackoverflow.com/a/21712356
+   */
+  function detectIE() {
+    var ua = window.navigator.userAgent;
+    var msie = ua.indexOf('MSIE ');
+    var trident = ua.indexOf('Trident/');
+
+    if (msie > 0) {
+        // IE 10 or older => return version number
+        return parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10);
+    }
+
+    if (trident > 0) {
+        // IE 11 (or newer) => return version number
+        var rv = ua.indexOf('rv:');
+        return parseInt(ua.substring(rv + 3, ua.indexOf('.', rv)), 10);
+    }
+
+    // other browser
+    return false;
+  }
 
   function HTML5Player(el, options, onReady) {
     this.el = el;
@@ -18,6 +41,10 @@ var HTML5Player = (function(DEBUG) {
   HTML5Player.name = HTML5Player.name || 'HTML5Player';
 
   HTML5Player.canPlay = function(el) {
+    if (detectIE()) {
+      return false;
+    }
+    
     try {
       var sources = el.getElementsByTagName('source');
       for (var i=0, l = sources.length; i<l; i++) {
@@ -133,10 +160,6 @@ var HTML5Player = (function(DEBUG) {
  * This player reads the properties from the video element, and replaces it with
  * an embedded SWF which handles the video playback.
  *
- * 1. FIXME: IE10 doesn't support dynamic object embeds. Not much of a big deal
- *           since it supports HTML5 video, but would be good to remove the
- *           workaround.
- *           Link: https://code.google.com/p/swfobject/issues/detail?id=667
  */
 
 var FlashPlayer = (function(global, DEBUG) {
@@ -213,9 +236,6 @@ var FlashPlayer = (function(global, DEBUG) {
 
   FlashPlayer.canPlay = function() {
     try {
-      // Issue #1
-      if (/MSIE 10/i.test(navigator.userAgent)) return false;
-
       var flash = window.ActiveXObject ?
                     new ActiveXObject('ShockwaveFlash.ShockwaveFlash').GetVariable('$version') :
                     navigator.mimeTypes['application/x-shockwave-flash'].enabledPlugin.description;
@@ -421,7 +441,6 @@ var ImagePlayer = (function(DEBUG) {
  */
 
 var DivinePlayer = (function(DEBUG) {
-
   var PLAYERS = [HTML5Player, FlashPlayer, ImagePlayer];
   var OPTIONS = ['autoplay', 'controls', 'loop', 'muted'];
 

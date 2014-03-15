@@ -1,10 +1,19 @@
 var DivinePlayer = function() {
     var HTML5Player = function() {
-        function HTML5Player(b, c, d) {
-            this.el = b, this.el.width = c.width || b.videoWidth, this.el.height = c.height || b.videoHeight, 
-            this.el.muted = b.hasAttribute("muted"), a(this.el, navigator.userAgent), d && d(this);
+        function a() {
+            var a = window.navigator.userAgent, b = a.indexOf("MSIE "), c = a.indexOf("Trident/");
+            if (b > 0) return parseInt(a.substring(b + 5, a.indexOf(".", b)), 10);
+            if (c > 0) {
+                var d = a.indexOf("rv:");
+                return parseInt(a.substring(d + 3, a.indexOf(".", d)), 10);
+            }
+            return !1;
         }
-        function a(a, b) {
+        function HTML5Player(a, c, d) {
+            this.el = a, this.el.width = c.width || a.videoWidth, this.el.height = c.height || a.videoHeight, 
+            this.el.muted = a.hasAttribute("muted"), b(this.el, navigator.userAgent), d && d(this);
+        }
+        function b(a, b) {
             var c = /ipad/i.test(b), d = /ipad/i.test(b), e = /android/i.test(b), f = /chrome/i.test(b), g = c || d || e;
             if (a.hasAttribute("poster") && f && !g) {
                 {
@@ -22,13 +31,14 @@ var DivinePlayer = function() {
                 b.target = a, a.dispatchEvent(b);
             });
         }
-        return HTML5Player.name = HTML5Player.name || "HTML5Player", HTML5Player.canPlay = function(a) {
+        return HTML5Player.name = HTML5Player.name || "HTML5Player", HTML5Player.canPlay = function(b) {
+            if (a()) return !1;
             try {
-                for (var b = a.getElementsByTagName("source"), c = 0, d = b.length; d > c; c++) {
-                    var e = b[c].getAttribute("type"), f = a.canPlayType(e);
-                    if (f) return !0;
+                for (var c = b.getElementsByTagName("source"), d = 0, e = c.length; e > d; d++) {
+                    var f = c[d].getAttribute("type"), g = b.canPlayType(f);
+                    if (g) return !0;
                 }
-            } catch (g) {}
+            } catch (h) {}
             return !1;
         }, HTML5Player.fn = HTML5Player.prototype, HTML5Player.fn.play = function() {
             this.el.play();
@@ -143,7 +153,6 @@ var DivinePlayer = function() {
         var m = 150;
         return FlashPlayer.name = FlashPlayer.name || "FlashPlayer", FlashPlayer.canPlay = function() {
             try {
-                if (/MSIE 10/i.test(navigator.userAgent)) return !1;
                 var a = window.ActiveXObject ? new ActiveXObject("ShockwaveFlash.ShockwaveFlash").GetVariable("$version") : navigator.mimeTypes["application/x-shockwave-flash"].enabledPlugin.description, b = /(\d+)[,.]\d+/.exec(a), c = parseInt(b[1], 10);
                 return c >= 9;
             } catch (d) {}
