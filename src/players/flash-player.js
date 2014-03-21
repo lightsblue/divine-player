@@ -10,7 +10,13 @@ var FlashPlayer = (function(global, DEBUG) {
 
   var DEFAULT_SIZE = 150;
 
-  function triggerCustomEvent(el,eventName){
+  function dispatchCustomEvent (el, event) {
+    if(el.dispatchEvent){
+      el.dispatchEvent(event);
+    }
+  }
+
+  function getEvent(eventName) {
     var event;
     if(document.createEvent){
       event = document.createEvent('HTMLEvents');
@@ -20,9 +26,7 @@ var FlashPlayer = (function(global, DEBUG) {
       event.eventType = eventName;
     }
     event.eventName = eventName;
-    if(el.dispatchEvent){
-      el.dispatchEvent(event);
-    }
+    return event;
   }
 
   // TODO: Select the mp4 instead of just the first source
@@ -32,6 +36,9 @@ var FlashPlayer = (function(global, DEBUG) {
     var callback = [namespace, callbackId, 'onReady'].join('_');
     var onError = [namespace, callbackId, 'onError'].join('_');
     var onDuration = [namespace, callbackId, 'onDuration'].join('_');
+    var onTimeUpdate = [namespace, callbackId, 'onTimeUpdate'].join('_');
+    var onPause = [namespace, callbackId, 'onPause'].join('_');
+    var onPlay = [namespace, callbackId, 'onPlay'].join('_');
     var latestDuration = NaN;
     if (!options.width) options.width = DEFAULT_SIZE;
     if (!options.height) options.height = DEFAULT_SIZE;
@@ -42,13 +49,41 @@ var FlashPlayer = (function(global, DEBUG) {
     }
 
     global[onError] = function(code, description) {
-      triggerCustomEvent(el, 'videoFailed');
+      var event = getEvent('videoFailed');
+      dispatchCustomEvent(el, event);
+      if (DEBUG) throw {'name': 'ActionScript ' + code, 'message': description};
+    };
+
+    global[onTimeUpdate] = function(code, description, newTime) {
+      var event = getEvent('timeupdate');
+      event.timeupdate = newTime;
+      dispatchCustomEvent(el, event);
+      if (DEBUG) throw {'name': 'ActionScript ' + code, 'message': description};
+    };
+
+    global[onVolumeChange] = function(code, description) {
+      var event = getEvent('volumechange');
+      dispatchCustomEvent(el, event);
       if (DEBUG) throw {'name': 'ActionScript ' + code, 'message': description};
     };
 
     global[onDuration] = function(seconds) {
+      var event = getEvent('durationchange');
+      event.duration = seconds;
+      dispatchCustomEvent(el, event);
       latestDuration = seconds;
-      triggerCustomEvent(el, 'durationchange');
+    };
+
+    global[onPause] = function(seconds) {
+      var event = getEvent('pause');
+      dispatchCustomEvent(el, event);
+      latestDuration = seconds;
+    };
+
+    global[onPlay] = function(seconds) {
+      var event = getEvent('play');
+      dispatchCustomEvent(el, event);
+      latestDuration = seconds;
     };
 
     var swf = override(el.getAttribute('data-fallback-player'), options.swf);
