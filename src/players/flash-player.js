@@ -37,6 +37,8 @@ var FlashPlayer = (function(global, DEBUG) {
     var onError = [namespace, callbackId, 'onError'].join('_');
     var onDuration = [namespace, callbackId, 'onDuration'].join('_');
     var onTimeUpdate = [namespace, callbackId, 'onTimeUpdate'].join('_');
+    var onVolumeChange = [namespace, callbackId, 'onVolumeChange'].join('_');
+    var onEnded = [namespace, callbackId, 'onEnded'].join('_');
     var onPause = [namespace, callbackId, 'onPause'].join('_');
     var onPlay = [namespace, callbackId, 'onPlay'].join('_');
     var latestDuration = NaN;
@@ -54,17 +56,20 @@ var FlashPlayer = (function(global, DEBUG) {
       if (DEBUG) throw {'name': 'ActionScript ' + code, 'message': description};
     };
 
-    global[onTimeUpdate] = function(code, description, newTime) {
+    global[onTimeUpdate] = function(time) {
       var event = getEvent('timeupdate');
-      event.timeupdate = newTime;
+      event.timeupdate = time;
       dispatchCustomEvent(el, event);
-      if (DEBUG) throw {'name': 'ActionScript ' + code, 'message': description};
     };
 
-    global[onVolumeChange] = function(code, description) {
+    global[onVolumeChange] = function() {
       var event = getEvent('volumechange');
       dispatchCustomEvent(el, event);
-      if (DEBUG) throw {'name': 'ActionScript ' + code, 'message': description};
+    };
+
+    global[onEnded] = function() {
+      var event = getEvent('ended');
+      dispatchCustomEvent(el, event);
     };
 
     global[onDuration] = function(seconds) {
@@ -74,16 +79,14 @@ var FlashPlayer = (function(global, DEBUG) {
       latestDuration = seconds;
     };
 
-    global[onPause] = function(seconds) {
+    global[onPause] = function() {
       var event = getEvent('pause');
       dispatchCustomEvent(el, event);
-      latestDuration = seconds;
     };
 
-    global[onPlay] = function(seconds) {
+    global[onPlay] = function() {
       var event = getEvent('play');
       dispatchCustomEvent(el, event);
-      latestDuration = seconds;
     };
 
     var swf = override(el.getAttribute('data-fallback-player'), options.swf);
