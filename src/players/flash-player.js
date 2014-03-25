@@ -56,20 +56,22 @@ var FlashPlayer = (function(global, DEBUG) {
     if (DEBUG) {
       if (!swf) throw 'SWF url must be specified.';
     }
-
-    this.swf = embed(swf, el, {
+    var swfOptions = {
       width: options.width,
       height: options.height,
       autoplay: hasAttribute(el, 'autoplay'),
       muted: hasAttribute(el, 'muted'),
       loop: hasAttribute(el, 'loop'),
-      poster: hasAttribute(el, 'poster') ? absolute(el.getAttribute('poster')) : undefined,
       video: getVideoUrl(el),
       onReady: callback,
       onError: onError,
       onDuration: onDuration,
       callbackId: callbackId
-    });
+    };
+    if (hasAttribute(el, 'poster')) {
+      swfOptions.poster = absolute(el.getAttribute('poster'));
+    }
+    this.swf = embed(swf, el, swfOptions);
 
     this.duration = function() {
       return latestDuration;
