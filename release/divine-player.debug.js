@@ -59,98 +59,119 @@ var DivinePlayer = function() {
         }, HTML5Player;
     }(window.DEBUG || !1), FlashPlayer = function(a, b) {
         function c(a, b) {
-            var c;
-            document.createEvent ? (c = document.createEvent("HTMLEvents"), c.initEvent(b, !0, !0)) : document.createEventObject && (c = document.createEventObject(), 
-            c.eventType = b), c.eventName = b, a.dispatchEvent && a.dispatchEvent(c);
-        }
-        function FlashPlayer(f, g, h) {
-            var i = f.id, n = "divinePlayer", o = [ n, i, "onReady" ].join("_"), p = [ n, i, "onError" ].join("_"), q = [ n, i, "onDuration" ].join("_"), r = 0/0;
-            g.width || (g.width = m), g.height || (g.height = m);
-            var s = this;
-            o && (a[o] = function() {
-                h(s);
-            }), a[p] = function(a, d) {
-                if (c(f, "videoFailed"), b) throw {
-                    name: "ActionScript " + a,
-                    message: d
-                };
-            }, a[q] = function(a) {
-                r = a, c(f, "durationchange");
-            };
-            var t = l(f.getAttribute("data-fallback-player"), g.swf);
-            if (b && !t) throw "SWF url must be specified.";
-            this.swf = j(t, f, {
-                width: g.width,
-                height: g.height,
-                autoplay: k(f, "autoplay"),
-                muted: k(f, "muted"),
-                loop: k(f, "loop"),
-                poster: k(f, "poster") ? d(f.getAttribute("poster")) : void 0,
-                video: e(f),
-                onReady: o,
-                onError: p,
-                onDuration: q,
-                callbackId: i
-            }), this.duration = function() {
-                return r;
-            };
+            a.dispatchEvent && a.dispatchEvent(b);
         }
         function d(a) {
-            return 0 === (a || "").indexOf("//") ? document.location.protocol + a : a;
+            var b;
+            return document.createEvent ? (b = document.createEvent("HTMLEvents"), b.initEvent(a, !0, !0)) : document.createEventObject && (b = document.createEventObject(), 
+            b.eventType = a), b.eventName = a, b;
+        }
+        function FlashPlayer(g, h, i) {
+            var j = g.id, o = "divinePlayer", p = [ o, j, "onReady" ].join("_"), q = [ o, j, "onError" ].join("_"), r = [ o, j, "onDuration" ].join("_"), s = [ o, j, "onTimeUpdate" ].join("_"), t = [ o, j, "onVolumeChange" ].join("_"), u = [ o, j, "onEnded" ].join("_"), v = [ o, j, "onPause" ].join("_"), w = [ o, j, "onPlay" ].join("_"), x = 0/0;
+            h.width || (h.width = n), h.height || (h.height = n);
+            var y = this;
+            p && (a[p] = function() {
+                i(y);
+            }), a[q] = function(a, e) {
+                var f = d("videoFailed");
+                if (c(g, f), b) throw {
+                    name: "ActionScript " + a,
+                    message: e
+                };
+            }, a[s] = function(a) {
+                var b = d("timeupdate");
+                b.timeupdate = a, c(g, b);
+            }, a[t] = function() {
+                var a = d("volumechange");
+                c(g, a);
+            }, a[u] = function() {
+                var a = d("ended");
+                c(g, a);
+            }, a[r] = function(a) {
+                var b = d("durationchange");
+                b.duration = a, c(g, b), x = a;
+            }, a[v] = function() {
+                var a = d("pause");
+                c(g, a);
+            }, a[w] = function() {
+                var a = d("play");
+                c(g, a);
+            };
+            var z = m(g.getAttribute("data-fallback-player"), h.swf);
+            if (b && !z) throw "SWF url must be specified.";
+            var A = {
+                width: h.width,
+                height: h.height,
+                autoplay: l(g, "autoplay"),
+                muted: l(g, "muted"),
+                loop: l(g, "loop"),
+                video: f(g),
+                onReady: p,
+                onError: q,
+                onDuration: r,
+                callbackId: j
+            };
+            l(g, "poster") && (A.poster = e(g.getAttribute("poster"))), this.swf = k(z, g, A), 
+            this.duration = function() {
+                return x;
+            };
         }
         function e(a) {
-            var b = a.getElementsByTagName("source");
-            return b.length ? d(b[0].src) : void 0;
+            return 0 === (a || "").indexOf("//") ? document.location.protocol + a : a;
         }
         function f(a) {
-            return i(a, function(a, b) {
+            var b = a.getElementsByTagName("source");
+            return b.length ? e(b[0].src) : void 0;
+        }
+        function g(a) {
+            return j(a, function(a, b) {
                 return a + '="' + b + '"';
             }, " ");
         }
-        function g(a) {
-            return i(a, function(a, b) {
-                return "<param " + f({
+        function h(a) {
+            return j(a, function(a, b) {
+                return "<param " + g({
                     name: a,
                     value: b
                 }) + " />";
             }, "\n");
         }
-        function h(a) {
-            return i(a, function(a, b) {
+        function i(a) {
+            return j(a, function(a, b) {
                 return a + "=" + encodeURIComponent(b);
             }, "&");
         }
-        function i(a, b, c) {
+        function j(a, b, c) {
             var d = [];
             for (var e in a) a.hasOwnProperty(e) && d.push(b(e, a[e]));
             return d.join(c);
         }
-        function j(a, b, c) {
-            var d = f({
+        function k(a, b, c) {
+            var d = g({
                 id: b.id,
                 name: b.id,
                 data: a,
                 width: c.width,
                 height: c.height,
                 type: "application/x-shockwave-flash"
-            }), e = g({
+            }), e = h({
                 movie: a,
                 allowScriptAccess: "sameDomain",
                 allowNetworking: "all",
                 wmode: "opaque",
                 quality: "high",
                 bgcolor: "#000000",
-                flashvars: h(c)
+                flashvars: i(c)
             });
             return b.outerHTML = "<object " + d + ">" + e + "</object>", document.getElementById(b.id);
         }
-        function k(a, b) {
+        function l(a, b) {
             return null != a.getAttribute(b);
         }
-        function l(a, b) {
+        function m(a, b) {
             return null == b ? a : b;
         }
-        var m = 150;
+        var n = 150;
         return FlashPlayer.name = FlashPlayer.name || "FlashPlayer", FlashPlayer.canPlay = function() {
             try {
                 var a = window.ActiveXObject ? new ActiveXObject("ShockwaveFlash.ShockwaveFlash").GetVariable("$version") : navigator.mimeTypes["application/x-shockwave-flash"].enabledPlugin.description, b = /(\d+)[,.]\d+/.exec(a), c = parseInt(b[1], 10);

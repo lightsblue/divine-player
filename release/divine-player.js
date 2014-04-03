@@ -166,7 +166,13 @@ var FlashPlayer = (function(global, DEBUG) {
 
   var DEFAULT_SIZE = 150;
 
-  function triggerCustomEvent(el,eventName){
+  function dispatchCustomEvent (el, event) {
+    if(el.dispatchEvent){
+      el.dispatchEvent(event);
+    }
+  }
+
+  function getEvent(eventName) {
     var event;
     if(document.createEvent){
       event = document.createEvent('HTMLEvents');
@@ -176,9 +182,7 @@ var FlashPlayer = (function(global, DEBUG) {
       event.eventType = eventName;
     }
     event.eventName = eventName;
-    if(el.dispatchEvent){
-      el.dispatchEvent(event);
-    }
+    return event;
   }
 
   // TODO: Select the mp4 instead of just the first source
@@ -188,6 +192,11 @@ var FlashPlayer = (function(global, DEBUG) {
     var callback = [namespace, callbackId, 'onReady'].join('_');
     var onError = [namespace, callbackId, 'onError'].join('_');
     var onDuration = [namespace, callbackId, 'onDuration'].join('_');
+    var onTimeUpdate = [namespace, callbackId, 'onTimeUpdate'].join('_');
+    var onVolumeChange = [namespace, callbackId, 'onVolumeChange'].join('_');
+    var onEnded = [namespace, callbackId, 'onEnded'].join('_');
+    var onPause = [namespace, callbackId, 'onPause'].join('_');
+    var onPlay = [namespace, callbackId, 'onPlay'].join('_');
     var latestDuration = NaN;
     if (!options.width) options.width = DEFAULT_SIZE;
     if (!options.height) options.height = DEFAULT_SIZE;
@@ -198,13 +207,42 @@ var FlashPlayer = (function(global, DEBUG) {
     }
 
     global[onError] = function(code, description) {
-      triggerCustomEvent(el, 'videoFailed');
+      var event = getEvent('videoFailed');
+      dispatchCustomEvent(el, event);
       if (DEBUG) throw {'name': 'ActionScript ' + code, 'message': description};
     };
 
+    global[onTimeUpdate] = function(time) {
+      var event = getEvent('timeupdate');
+      event.timeupdate = time;
+      dispatchCustomEvent(el, event);
+    };
+
+    global[onVolumeChange] = function() {
+      var event = getEvent('volumechange');
+      dispatchCustomEvent(el, event);
+    };
+
+    global[onEnded] = function() {
+      var event = getEvent('ended');
+      dispatchCustomEvent(el, event);
+    };
+
     global[onDuration] = function(seconds) {
+      var event = getEvent('durationchange');
+      event.duration = seconds;
+      dispatchCustomEvent(el, event);
       latestDuration = seconds;
-      triggerCustomEvent(el, 'durationchange');
+    };
+
+    global[onPause] = function() {
+      var event = getEvent('pause');
+      dispatchCustomEvent(el, event);
+    };
+
+    global[onPlay] = function() {
+      var event = getEvent('play');
+      dispatchCustomEvent(el, event);
     };
 
     var swf = override(el.getAttribute('data-fallback-player'), options.swf);
@@ -212,20 +250,22 @@ var FlashPlayer = (function(global, DEBUG) {
     if (DEBUG) {
       if (!swf) throw 'SWF url must be specified.';
     }
-
-    this.swf = embed(swf, el, {
+    var swfOptions = {
       width: options.width,
       height: options.height,
       autoplay: hasAttribute(el, 'autoplay'),
       muted: hasAttribute(el, 'muted'),
       loop: hasAttribute(el, 'loop'),
-      poster: hasAttribute(el, 'poster') ? absolute(el.getAttribute('poster')) : undefined,
       video: getVideoUrl(el),
       onReady: callback,
       onError: onError,
       onDuration: onDuration,
       callbackId: callbackId
-    });
+    };
+    if (hasAttribute(el, 'poster')) {
+      swfOptions.poster = absolute(el.getAttribute('poster'));
+    }
+    this.swf = embed(swf, el, swfOptions);
 
     this.duration = function() {
       return latestDuration;
